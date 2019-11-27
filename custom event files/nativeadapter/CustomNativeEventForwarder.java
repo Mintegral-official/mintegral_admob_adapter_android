@@ -1,5 +1,6 @@
 package com.mintegral.adapter.nativeadapter;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.google.android.gms.ads.AdRequest;
@@ -19,25 +20,26 @@ import java.util.List;
 
 public class CustomNativeEventForwarder implements NativeListener.NativeAdListener {
 
-    private static final String TAG="CustomNativeEvent";
+    private static final String TAG = "CustomNativeEvent";
     private CustomEventNativeListener mNativeListener;
     private NativeMediationAdRequest mNativeMediationAdRequest;
     private MtgNativeHandler mNativeHandle;
-
+    private Context mContext;
 
     public CustomNativeEventForwarder(
-            CustomEventNativeListener listener, NativeMediationAdRequest nativeMediationAdRequest, MtgNativeHandler nativeHandle) {
+            CustomEventNativeListener listener, NativeMediationAdRequest nativeMediationAdRequest, MtgNativeHandler nativeHandle, Context context) {
         this.mNativeListener = listener;
         this.mNativeMediationAdRequest = nativeMediationAdRequest;
         this.mNativeHandle = nativeHandle;
+        this.mContext = context;
     }
 
 
     @Override
     public void onAdClick(Campaign campaign) {
 
-        if(mNativeListener != null){
-            mNativeListener.onAdOpened();
+        if (mNativeListener != null) {
+//            mNativeListener.onAdOpened();
             mNativeListener.onAdClicked();
         }
 
@@ -51,9 +53,9 @@ public class CustomNativeEventForwarder implements NativeListener.NativeAdListen
     @Override
     public void onLoggingImpression(int adsourceType) {
 
-        Log.i(TAG,"onLoggingImpression adsourceType:"+adsourceType);
-        if (mNativeListener!=null){
-            Log.i(TAG,"onLoggingImpression onAdImpression");
+        Log.i(TAG, "onLoggingImpression adsourceType:" + adsourceType);
+        if (mNativeListener != null) {
+            Log.i(TAG, "onLoggingImpression onAdImpression");
             mNativeListener.onAdImpression();
         }
     }
@@ -62,8 +64,7 @@ public class CustomNativeEventForwarder implements NativeListener.NativeAdListen
     public void onAdLoaded(List<Campaign> list, int i) {
 
 
-
-        if(list == null || list.size() == 0){
+        if (list == null || list.size() == 0) {
             mNativeListener.onAdFailedToLoad(AdRequest.ERROR_CODE_NO_FILL);
             return;
         }
@@ -79,19 +80,49 @@ public class CustomNativeEventForwarder implements NativeListener.NativeAdListen
             return;
         }
 
-        if(mNativeMediationAdRequest.isAppInstallAdRequested()){
+        if (mNativeMediationAdRequest.isUnifiedNativeAdRequested()) {
+            final MintegralNativeAppInstallAdMapper mapper =
+                    new MintegralNativeAppInstallAdMapper(mContext, ad, mNativeHandle,mNativeListener);
+
+            boolean urlsOnly = false;
+            if (mNativeMediationAdRequest.getNativeAdOptions() != null) {
+                urlsOnly = mNativeMediationAdRequest.getNativeAdOptions().shouldReturnUrlsForImageAssets();
+            }
+
+            if (!urlsOnly) {
+                new MintegralNativeAppInstallAdMapper.DownloadDrawablesAsync(new MintegralNativeAppInstallAdMapper.ImageDownloadListener() {
+
+                    @Override
+                    public void onDonwloadSuccess() {
+                        mNativeListener.onAdLoaded(mapper);
+                    }
+
+                    @Override
+                    public void onDonwloadFailed() {
+                        mNativeListener.onAdFailedToLoad(AdRequest.ERROR_CODE_NO_FILL);
+
+                    }
+                }).execute(mapper.getIcon());
+            } else {
+                mNativeListener.onAdLoaded(mapper);
+            }
+            return;
+        }
+
+        if (mNativeMediationAdRequest.isAppInstallAdRequested()) {
             MintegralNativeAppInstallAdMapper mapper =
-                    new MintegralNativeAppInstallAdMapper(ad,mNativeHandle);
+                    new MintegralNativeAppInstallAdMapper(mContext, ad, mNativeHandle, mNativeListener);
             mNativeListener.onAdLoaded(mapper);
             return;
         }
 
-        if(mNativeMediationAdRequest.isContentAdRequested()){
+        if (mNativeMediationAdRequest.isContentAdRequested()) {
             MintegralNativeContentAdMapper mapper =
-                    new MintegralNativeContentAdMapper(ad,mNativeHandle);
+                    new MintegralNativeContentAdMapper(ad, mNativeHandle);
             mNativeListener.onAdLoaded(mapper);
             return;
         }
+
 
     }
 

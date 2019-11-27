@@ -1,5 +1,7 @@
 package com.mintegral.adapter.rewardadapter;
 
+import android.util.Log;
+
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.reward.mediation.MediationRewardedVideoAdListener;
 import com.mintegral.msdk.out.RewardVideoListener;
@@ -10,7 +12,7 @@ import com.mintegral.msdk.out.RewardVideoListener;
  */
 
 public class MediationRewardVideoEventForwarder implements RewardVideoListener {
-
+    private static final String TAG = MediationRewardVideoEventForwarder.class.getName();
 
     private MediationRewardedVideoAdListener mMediationRewardedVideoAdListener;
     private MTGToAdmobRewardVideoAdapter mMTGToAdmobRewardVideoAdapter;
@@ -24,6 +26,7 @@ public class MediationRewardVideoEventForwarder implements RewardVideoListener {
 
     @Override
     public void onVideoLoadSuccess(String s) {
+        Log.e(TAG,"onVideoLoadSuccess");
         if (mMTGToAdmobRewardVideoAdapter != null) {
             if (mMTGToAdmobRewardVideoAdapter.canShow()) {
                 mMediationRewardedVideoAdListener.onAdLoaded(mMTGToAdmobRewardVideoAdapter);
@@ -33,6 +36,7 @@ public class MediationRewardVideoEventForwarder implements RewardVideoListener {
 
     @Override
     public void onVideoLoadFail(String s) {
+        Log.e(TAG,"onVideoLoadFail:"+s);
         mMediationRewardedVideoAdListener.onAdFailedToLoad(mMTGToAdmobRewardVideoAdapter, AdRequest.ERROR_CODE_NO_FILL);
     }
 
@@ -62,9 +66,10 @@ public class MediationRewardVideoEventForwarder implements RewardVideoListener {
 
         mMediationRewardedVideoAdListener.onAdClicked(mMTGToAdmobRewardVideoAdapter);
     }
-    @Override
-    public void onLoadSuccess(String s){
 
+    @Override
+    public void onLoadSuccess(String s) {
+        Log.e(TAG,"onLoadSuccess:"+s);
     }
 
 

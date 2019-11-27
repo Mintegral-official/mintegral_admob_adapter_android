@@ -7,11 +7,11 @@ import android.text.TextUtils;
 import com.google.android.gms.ads.mediation.MediationAdRequest;
 import com.google.android.gms.ads.mediation.customevent.CustomEventInterstitial;
 import com.google.android.gms.ads.mediation.customevent.CustomEventInterstitialListener;
+import com.mintegral.adapter.common.AdapterTools;
 import com.mintegral.msdk.MIntegralConstans;
 import com.mintegral.msdk.MIntegralSDK;
 import com.mintegral.msdk.out.MIntegralSDKFactory;
 import com.mintegral.msdk.out.MTGInterstitialHandler;
-import com.mintegral.adapter.common.AdapterTools;
 
 
 import org.json.JSONObject;
@@ -80,7 +80,6 @@ public class MintegralCustomEventInterstitial implements CustomEventInterstitial
                     appId = jo.getString("appId");
                     appKey = jo.getString("appKey");
                     unitId = jo.getString("unitId");
-                    AdapterTools.pareseAuthority(context,jo);
                 }
             }catch (Exception e){
 

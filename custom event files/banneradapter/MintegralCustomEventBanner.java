@@ -1,13 +1,10 @@
 package com.mintegral.adapter.banneradapter;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 
 import com.google.android.gms.ads.AdRequest;
@@ -90,7 +87,6 @@ public class MintegralCustomEventBanner implements CustomEventBanner {
                     appId = jo.getString("appId");
                     appKey = jo.getString("appKey");
                     unitId = jo.getString("unitId");
-                    AdapterTools.pareseAuthority(context, jo);
                 }
             } catch (Exception e) {
 

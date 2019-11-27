@@ -10,12 +10,12 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.mediation.MediationAdRequest;
 import com.google.android.gms.ads.mediation.customevent.CustomEventInterstitial;
 import com.google.android.gms.ads.mediation.customevent.CustomEventInterstitialListener;
+import com.mintegral.adapter.common.AdapterTools;
 import com.mintegral.msdk.MIntegralConstans;
 import com.mintegral.msdk.MIntegralSDK;
 import com.mintegral.msdk.out.MIntegralSDKFactory;
 import com.mintegral.msdk.out.MTGRewardVideoHandler;
 import com.mintegral.msdk.out.RewardVideoListener;
-import com.mintegral.adapter.common.AdapterTools;
 
 import org.json.JSONObject;
 
@@ -85,7 +85,6 @@ public class MintegralCustomEventInterstitialVideo implements CustomEventInterst
                     appKey = jo.getString("appKey");
                     unitId = jo.getString("unitId");
                     mRewardId = jo.getString("rewardId");
-                    AdapterTools.pareseAuthority(context,jo);
                 }
             }catch (Exception e){
                 Log.e("",e.getMessage(),e);

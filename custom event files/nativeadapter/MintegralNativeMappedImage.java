@@ -34,4 +34,9 @@ public class MintegralNativeMappedImage extends NativeAd.Image {
     public double getScale() {
         return mScale;
     }
+
+
+    void setDrawable(Drawable mDrawable) {
+        this.mDrawable = mDrawable;
+    }
 }

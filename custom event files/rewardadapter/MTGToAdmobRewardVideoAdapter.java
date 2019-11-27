@@ -10,11 +10,11 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.mediation.MediationAdRequest;
 import com.google.android.gms.ads.reward.mediation.MediationRewardedVideoAdAdapter;
 import com.google.android.gms.ads.reward.mediation.MediationRewardedVideoAdListener;
+import com.mintegral.adapter.common.AdapterTools;
 import com.mintegral.msdk.MIntegralConstans;
 import com.mintegral.msdk.MIntegralSDK;
 import com.mintegral.msdk.out.MIntegralSDKFactory;
 import com.mintegral.msdk.out.MTGRewardVideoHandler;
-import com.mintegral.adapter.common.AdapterTools;
 
 
 import org.json.JSONObject;
@@ -30,20 +30,15 @@ public class MTGToAdmobRewardVideoAdapter implements MediationRewardedVideoAdAda
     private String TAG = "MTGToAdmobRewardVideoAdapter";
 
     private MTGRewardVideoHandler mMvRewardVideoHandler;
-    private String mAPPID="";
+    private String mAPPID = "";
     private String mAPPKey = "";
     private String mRewardUnitId = "";
     private String mRewardId = "";
     private String mUserId = "";
-    private String mPackageName = "";
+    static boolean hasInitMintegralSDK;
 
 
     private MediationRewardVideoEventForwarder mediationRewardVideoEventForwarder;
-
-
-
-
-
 
 
     @Override
@@ -62,22 +57,22 @@ public class MTGToAdmobRewardVideoAdapter implements MediationRewardedVideoAdAda
     }
 
 
-    private void parseAuthority(JSONObject jsonObject){
-        if(jsonObject == null){
+    private void parseAuthority(JSONObject jsonObject) {
+        if (jsonObject == null) {
             return;
         }
         try {
 
-        }catch (Throwable t){
-            Log.e(TAG,t.getMessage(),t);
+        } catch (Throwable t) {
+            Log.e(TAG, t.getMessage(), t);
         }
     }
 
-    private void parseServiceString(Context context,String serviceString){
-        if(TextUtils.isEmpty(serviceString)){
+    private void parseServiceString(Context context, String serviceString) {
+        if (TextUtils.isEmpty(serviceString)) {
             return;
         }
-        try{
+        try {
             JSONObject jsonObject = new JSONObject(serviceString);
             String appId = jsonObject.optString("appId");
             String appKey = jsonObject.optString("appKey");
@@ -85,24 +80,23 @@ public class MTGToAdmobRewardVideoAdapter implements MediationRewardedVideoAdAda
             String rewardId = jsonObject.optString("rewardId");
 
 
-            if(!TextUtils.isEmpty(appId) ){
+            if (!TextUtils.isEmpty(appId)) {
                 mAPPID = appId;
             }
 
-            if(!TextUtils.isEmpty(appKey) ){
+            if (!TextUtils.isEmpty(appKey)) {
 
                 mAPPKey = appKey;
             }
 
-            if(!TextUtils.isEmpty(unitId)){
+            if (!TextUtils.isEmpty(unitId)) {
                 mRewardUnitId = unitId;
             }
 
-            if(!TextUtils.isEmpty(rewardId)){
+            if (!TextUtils.isEmpty(rewardId)) {
                 mRewardId = rewardId;
             }
-            AdapterTools.pareseAuthority(context,jsonObject);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -111,68 +105,71 @@ public class MTGToAdmobRewardVideoAdapter implements MediationRewardedVideoAdAda
     @Override
     public void initialize(Context context, MediationAdRequest mediationAdRequest, String s, MediationRewardedVideoAdListener mediationRewardedVideoAdListener, Bundle bundle, Bundle bundle1) {
 
-        String  serviceString = bundle.getString(MediationRewardedVideoAdAdapter.CUSTOM_EVENT_SERVER_PARAMETER_FIELD);
-        parseServiceString(context,serviceString);
+        String serviceString = bundle.getString(MediationRewardedVideoAdAdapter.CUSTOM_EVENT_SERVER_PARAMETER_FIELD);
+        parseServiceString(context, serviceString);
 
 
-        if(bundle1!= null){
-            if(!TextUtils.isEmpty(bundle1.getCharSequence("userId"))){
+        if (bundle1 != null) {
+            if (!TextUtils.isEmpty(bundle1.getCharSequence("userId"))) {
                 mUserId = bundle1.getCharSequence("userId").toString();
             }
 
-            if(!TextUtils.isEmpty(bundle1.getCharSequence("packageName"))){
-                mPackageName = bundle1.getCharSequence("packageName").toString();
-            }
+
         }
-        MIntegralSDK sdk = MIntegralSDKFactory.getMIntegralSDK();
-        if(TextUtils.isEmpty(mAPPID) || TextUtils.isEmpty(mAPPKey)){
-            mediationRewardedVideoAdListener.onInitializationFailed(this,AdRequest.ERROR_CODE_INVALID_REQUEST);
+
+        if (TextUtils.isEmpty(mAPPID) || TextUtils.isEmpty(mAPPKey)) {
+            mediationRewardedVideoAdListener.onInitializationFailed(this, AdRequest.ERROR_CODE_INVALID_REQUEST);
             return;
         }
-        Map<String, String> map = sdk.getMTGConfigurationMap(mAPPID, mAPPKey);
-
-
-        if(!TextUtils.isEmpty(mPackageName)){
-            map.put(MIntegralConstans.PACKAGE_NAME_MANIFEST, mPackageName);
-        }
         AdapterTools.addChannel();
-        sdk.init(map, context.getApplicationContext());
+        initSDK(context);
 
-        if(context instanceof Activity){
-            mMvRewardVideoHandler = new MTGRewardVideoHandler((Activity)context, mRewardUnitId);
-           mediationRewardVideoEventForwarder = new MediationRewardVideoEventForwarder(mediationRewardedVideoAdListener,this);
+        if (context instanceof Activity) {
+            mMvRewardVideoHandler = new MTGRewardVideoHandler((Activity) context, mRewardUnitId);
+            mediationRewardVideoEventForwarder = new MediationRewardVideoEventForwarder(mediationRewardedVideoAdListener, this);
             mMvRewardVideoHandler.setRewardVideoListener(mediationRewardVideoEventForwarder);
             mediationRewardedVideoAdListener.onInitializationSucceeded(this);
-        }else{
-            mediationRewardedVideoAdListener.onInitializationFailed(this,AdRequest.ERROR_CODE_INVALID_REQUEST);
+        } else {
+            mediationRewardedVideoAdListener.onInitializationFailed(this, AdRequest.ERROR_CODE_INVALID_REQUEST);
             return;
         }
 
     }
 
+    private void initSDK(Context context) {
+        if (!hasInitMintegralSDK) {
+            MIntegralSDK sdk = MIntegralSDKFactory.getMIntegralSDK();
+            Map<String, String> map = sdk.getMTGConfigurationMap(mAPPID, mAPPKey);
+            sdk.init(map, context.getApplicationContext());
+            hasInitMintegralSDK = true;
+            Log.e(TAG, "hasInitMintegralSDK:" + hasInitMintegralSDK);
+        }
+    }
+
     @Override
     public boolean isInitialized() {
-        return mMvRewardVideoHandler == null ? false:true;
+        return mMvRewardVideoHandler == null ? false : true;
     }
 
     @Override
     public void loadAd(MediationAdRequest mediationAdRequest, Bundle bundle, Bundle bundle1) {
 
 
-            mMvRewardVideoHandler.load();
+        mMvRewardVideoHandler.load();
     }
 
     @Override
     public void showVideo() {
 
-            if (mMvRewardVideoHandler.isReady()) {
-                mMvRewardVideoHandler.show(mRewardId, mUserId);
-            }
+        if (mMvRewardVideoHandler.isReady()) {
+            mMvRewardVideoHandler.show(mRewardId, mUserId);
+        }
     }
+
     public boolean canShow() {
-        if(mMvRewardVideoHandler != null){
+        if (mMvRewardVideoHandler != null) {
             return mMvRewardVideoHandler.isReady();
-        }else{
+        } else {
             return false;
         }
 
