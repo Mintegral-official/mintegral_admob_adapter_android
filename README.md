@@ -28,12 +28,14 @@ The adapter is available via:
     ```
 
     dependencies {
-        implementation 'com.mintegral.thrid.adapter:admob_adapter:2.2.3'
+        implementation 'com.mintegral.thrid.adapter:admob_adapter:2.2.4'
     }
     ```
 
 2. **Manual integration with AAR**
 
 	Please put the admob_adapter AAR into your project via [Admob Adapter.zip](https://github.com/Mintegral-official/mintegral_admob_adapter_android/archive/master.zip)
+
+## [Changelog](./CHANGELOG.md)
 
 

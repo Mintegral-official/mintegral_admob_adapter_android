@@ -4,7 +4,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.ArrayMap;
 import android.util.Log;
+import android.util.SparseArray;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.mediation.MediationAdRequest;
@@ -19,6 +21,7 @@ import com.mintegral.msdk.out.MTGRewardVideoHandler;
 
 import org.json.JSONObject;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -36,10 +39,10 @@ public class MTGToAdmobRewardVideoAdapter implements MediationRewardedVideoAdAda
     private String mRewardId = "";
     private String mUserId = "";
     static boolean hasInitMintegralSDK;
-
-
+    private Context mContext;
+    private MediationRewardedVideoAdListener mMediationRewardedVideoAdListener;
     private MediationRewardVideoEventForwarder mediationRewardVideoEventForwarder;
-
+    private HashMap<String,MTGRewardVideoHandler> unitArray = new HashMap<>();
 
     @Override
     public void onResume() {
@@ -68,7 +71,7 @@ public class MTGToAdmobRewardVideoAdapter implements MediationRewardedVideoAdAda
         }
     }
 
-    private void parseServiceString(Context context, String serviceString) {
+    private void parseServiceString(String serviceString) {
         if (TextUtils.isEmpty(serviceString)) {
             return;
         }
@@ -104,16 +107,16 @@ public class MTGToAdmobRewardVideoAdapter implements MediationRewardedVideoAdAda
 
     @Override
     public void initialize(Context context, MediationAdRequest mediationAdRequest, String s, MediationRewardedVideoAdListener mediationRewardedVideoAdListener, Bundle bundle, Bundle bundle1) {
+        mContext = context;
+        mMediationRewardedVideoAdListener = mediationRewardedVideoAdListener;
 
         String serviceString = bundle.getString(MediationRewardedVideoAdAdapter.CUSTOM_EVENT_SERVER_PARAMETER_FIELD);
-        parseServiceString(context, serviceString);
-
+        parseServiceString(serviceString);
 
         if (bundle1 != null) {
             if (!TextUtils.isEmpty(bundle1.getCharSequence("userId"))) {
                 mUserId = bundle1.getCharSequence("userId").toString();
             }
-
 
         }
 
@@ -121,14 +124,16 @@ public class MTGToAdmobRewardVideoAdapter implements MediationRewardedVideoAdAda
             mediationRewardedVideoAdListener.onInitializationFailed(this, AdRequest.ERROR_CODE_INVALID_REQUEST);
             return;
         }
+
+
         AdapterTools.addChannel();
         initSDK(context);
 
         if (context instanceof Activity) {
-            mMvRewardVideoHandler = new MTGRewardVideoHandler((Activity) context, mRewardUnitId);
-            mediationRewardVideoEventForwarder = new MediationRewardVideoEventForwarder(mediationRewardedVideoAdListener, this);
-            mMvRewardVideoHandler.setRewardVideoListener(mediationRewardVideoEventForwarder);
+
             mediationRewardedVideoAdListener.onInitializationSucceeded(this);
+            mediationRewardVideoEventForwarder = new MediationRewardVideoEventForwarder(mMediationRewardedVideoAdListener, this);
+
         } else {
             mediationRewardedVideoAdListener.onInitializationFailed(this, AdRequest.ERROR_CODE_INVALID_REQUEST);
             return;
@@ -153,17 +158,25 @@ public class MTGToAdmobRewardVideoAdapter implements MediationRewardedVideoAdAda
 
     @Override
     public void loadAd(MediationAdRequest mediationAdRequest, Bundle bundle, Bundle bundle1) {
-
-
-        mMvRewardVideoHandler.load();
+        if (mContext !=null) {
+            String serviceString = bundle.getString(MediationRewardedVideoAdAdapter.CUSTOM_EVENT_SERVER_PARAMETER_FIELD);
+            parseServiceString(serviceString);
+            if (unitArray.containsKey(mRewardUnitId)){
+                mMvRewardVideoHandler = unitArray.get(mRewardUnitId);
+            }else {
+                mMvRewardVideoHandler = new MTGRewardVideoHandler((Activity) mContext, mRewardUnitId);
+                unitArray.put(mRewardUnitId,mMvRewardVideoHandler);
+            }
+            if (mMvRewardVideoHandler!=null) {
+                mMvRewardVideoHandler.setRewardVideoListener(mediationRewardVideoEventForwarder);
+                mMvRewardVideoHandler.load();
+            }
+        }
     }
 
     @Override
     public void showVideo() {
-
-        if (mMvRewardVideoHandler.isReady()) {
-            mMvRewardVideoHandler.show(mRewardId, mUserId);
-        }
+        mMvRewardVideoHandler.show(mRewardId, mUserId);
     }
 
     public boolean canShow() {

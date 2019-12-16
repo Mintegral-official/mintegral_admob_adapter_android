@@ -26,6 +26,7 @@ import com.mintegral.msdk.out.RewardVideoListener;
 
 import org.json.JSONObject;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -42,6 +43,7 @@ public class AdmobNewRewardVideoAdapter extends Adapter implements MediationRewa
 
     MediationAdLoadCallback admobLoadListener;
     private MediationRewardedAdCallback mMediationRewardedAdCallback;
+    private HashMap<String,MTGRewardVideoHandler> unitArray = new HashMap<>();
 
     @Override
     public void initialize(Context context, InitializationCompleteCallback initializationCompleteCallback, List<MediationConfiguration> list) {
@@ -68,14 +70,7 @@ public class AdmobNewRewardVideoAdapter extends Adapter implements MediationRewa
 
         }
 
-
-        if (context instanceof Activity) {
-            mMvRewardVideoHandler = new MTGRewardVideoHandler((Activity) context, mRewardUnitId);
-//            mediationRewardVideoEventForwarder = new MediationRewardVideoEventForwarder(mediationRewardedVideoAdListener,this);
-            mMvRewardVideoHandler.setRewardVideoListener(this);
-//            mediationRewardedVideoAdListener.onInitializationSucceeded(this);
-            initializationCompleteCallback.onInitializationSucceeded();
-        }
+        initializationCompleteCallback.onInitializationSucceeded();
     }
 
     @Override
@@ -113,12 +108,13 @@ public class AdmobNewRewardVideoAdapter extends Adapter implements MediationRewa
             parseServiceString(context, serviceString);
         }
 
-        if (TextUtils.isEmpty(mAPPID) || TextUtils.isEmpty(mAPPKey)) {
-            mediationAdLoadCallback.onFailure("mintegral appid or appkey is null");
+        if (TextUtils.isEmpty(mAPPID) || TextUtils.isEmpty(mAPPKey) || TextUtils.isEmpty(mRewardId)) {
+            mediationAdLoadCallback.onFailure("mintegral appid or appkey or unitid is null");
             return;
         }
-        AdapterTools.addChannel();
+
         if (!hasInitMintegralSDK) {
+            AdapterTools.addChannel();
             MIntegralSDK sdk = MIntegralSDKFactory.getMIntegralSDK();
 
             Map<String, String> map = sdk.getMTGConfigurationMap(mAPPID, mAPPKey);
@@ -127,15 +123,17 @@ public class AdmobNewRewardVideoAdapter extends Adapter implements MediationRewa
             hasInitMintegralSDK = true;
             Log.e(TAG, "hasInitMintegralSDK:" + hasInitMintegralSDK);
         }
-        if (mMvRewardVideoHandler == null) {
+        if (unitArray.containsKey(mRewardUnitId)){
+            mMvRewardVideoHandler = unitArray.get(mRewardUnitId);
+        }else {
             mMvRewardVideoHandler = new MTGRewardVideoHandler(context, mRewardUnitId);
-//            mediationRewardVideoEventForwarder = new MediationRewardVideoEventForwarder(mediationRewardedVideoAdListener,this);
+            unitArray.put(mRewardUnitId,mMvRewardVideoHandler);
+        }
+        if (mMvRewardVideoHandler!=null) {
             mMvRewardVideoHandler.setRewardVideoListener(this);
             mMvRewardVideoHandler.load();
-        } else {
-//            mediationRewardedVideoAdListener.onInitializationSucceeded(this);
-            mMvRewardVideoHandler.load();
         }
+
 
     }
 

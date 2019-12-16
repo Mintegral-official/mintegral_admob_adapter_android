@@ -28,9 +28,7 @@ public class MediationRewardVideoEventForwarder implements RewardVideoListener {
     public void onVideoLoadSuccess(String s) {
         Log.e(TAG,"onVideoLoadSuccess");
         if (mMTGToAdmobRewardVideoAdapter != null) {
-            if (mMTGToAdmobRewardVideoAdapter.canShow()) {
-                mMediationRewardedVideoAdListener.onAdLoaded(mMTGToAdmobRewardVideoAdapter);
-            }
+            mMediationRewardedVideoAdListener.onAdLoaded(mMTGToAdmobRewardVideoAdapter);
         }
     }
 

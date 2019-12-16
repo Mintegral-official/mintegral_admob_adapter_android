@@ -36,11 +36,10 @@ public class MintegralCustomEventInterstitialVideoNative implements CustomEventI
     private String unitId = "";
     private String mRewardId = "";
     private String packageName = "";
-
+    private static String TAG = MintegralCustomEventInterstitialVideoNative.class.getSimpleName();
 
     private CustomEventInterstitialListener mCustomEventInterstitialListener;
-
-
+    private static boolean hasInitMintegralSDK = false;
 
 
     @Override
@@ -48,19 +47,25 @@ public class MintegralCustomEventInterstitialVideoNative implements CustomEventI
         mCustomEventInterstitialListener = customEventInterstitialListener;
         parseServer(context,s);//解析服务端下发
         parseBunld(bundle);//解析传入
-        MIntegralSDK sdk = MIntegralSDKFactory.getMIntegralSDK();
+
         if(TextUtils.isEmpty(appId) || TextUtils.isEmpty(appKey)){
             if(customEventInterstitialListener != null){
                 customEventInterstitialListener.onAdFailedToLoad(AdRequest.ERROR_CODE_INVALID_REQUEST);
             }
             return;
         }
-        Map<String, String> map = sdk.getMTGConfigurationMap(appId, appKey);
-        if(!TextUtils.isEmpty(packageName)){
-            map.put(MIntegralConstans.PACKAGE_NAME_MANIFEST,packageName);
+
+        if (!hasInitMintegralSDK) {
+            AdapterTools.addChannel();
+            MIntegralSDK sdk = MIntegralSDKFactory.getMIntegralSDK();
+
+            Map<String, String> map = sdk.getMTGConfigurationMap(appId, appKey);
+
+            sdk.init(map, context.getApplicationContext());
+            hasInitMintegralSDK = true;
+            Log.e(TAG, "hasInitMintegralSDK:" + hasInitMintegralSDK);
         }
-        AdapterTools.addChannel();
-        sdk.init(map, context);
+
 
         HashMap<String, Object> hashMap = new HashMap<String, Object>();
         // 设置广告位ID
