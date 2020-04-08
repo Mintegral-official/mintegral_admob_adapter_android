@@ -28,7 +28,7 @@ The adapter is available via:
     ```
 
     dependencies {
-        implementation 'com.mintegral.thrid.adapter:admob_adapter:2.2.4'
+        implementation 'com.mintegral.thrid.adapter:admob_adapter:2.2.5'
     }
     ```
 
