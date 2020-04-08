@@ -71,4 +71,9 @@ public class MintegralCustomBannerEventForwarder implements BannerAdListener {
 
         }
     }
+
+    @Override
+    public void onCloseBanner() {
+
+    }
 }

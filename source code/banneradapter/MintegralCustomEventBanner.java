@@ -35,7 +35,7 @@ public class MintegralCustomEventBanner implements CustomEventBanner {
     private String packageName = "";
 
     private MTGBannerView mtgBannerView;
-    private boolean hasInitSDK = false;
+    private static boolean hasInitSDK = false;
     private static final String TAG = "Banner";
 
     @Override

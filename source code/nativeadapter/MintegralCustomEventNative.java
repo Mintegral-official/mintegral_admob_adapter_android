@@ -36,7 +36,7 @@ public class MintegralCustomEventNative implements CustomEventNative {
 
 
     private NativeMediationAdRequest nativeMediationAdRequest;
-    private boolean hasInitMintegralSDK = false;
+    private static boolean hasInitMintegralSDK = false;
 
 
     @Override
@@ -50,7 +50,7 @@ public class MintegralCustomEventNative implements CustomEventNative {
             hasInitMintegralSDK = true;
         }
 
-        loadMobvistaAds(context, customEventNativeListener);
+        loadMintegralAds(context, customEventNativeListener);
 
     }
 
@@ -116,7 +116,7 @@ public class MintegralCustomEventNative implements CustomEventNative {
     }
 
 
-    private void loadMobvistaAds(Context context, CustomEventNativeListener customEventNativeListener) {
+    private void loadMintegralAds(Context context, CustomEventNativeListener customEventNativeListener) {
 
         Map<String, Object> properties = MtgNativeHandler.getNativeProperties(unitId);
         properties.put(MIntegralConstans.PROPERTIES_AD_NUM, 1);
