@@ -171,4 +171,9 @@ public class MintegralCustomEventInterstitialVideoNative implements CustomEventI
     public void onVideoComplete(String s) {
 
     }
+
+    @Override
+    public void onAdCloseWithIVReward(boolean b, int i) {
+
+    }
 }
