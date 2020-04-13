@@ -2,6 +2,12 @@
 
 ## ChangeLog
 
+#### 2.2.6
+- upgrade SDK to 13.0.4
+
+#### 2.2.5
+- add banner close callback
+
 #### 2.2.4
 - add support ecpm waterfall for new reward
 
