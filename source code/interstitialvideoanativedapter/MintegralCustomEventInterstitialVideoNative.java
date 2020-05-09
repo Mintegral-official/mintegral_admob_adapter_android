@@ -11,6 +11,7 @@ import com.google.android.gms.ads.mediation.MediationAdRequest;
 import com.google.android.gms.ads.mediation.customevent.CustomEventInterstitial;
 import com.google.android.gms.ads.mediation.customevent.CustomEventInterstitialListener;
 import com.mintegral.adapter.common.AdapterTools;
+import com.mintegral.adapter.manager.MintegralHandlerManager;
 import com.mintegral.msdk.MIntegralConstans;
 import com.mintegral.msdk.MIntegralSDK;
 import com.mintegral.msdk.interstitialvideo.out.InterstitialVideoListener;
@@ -26,16 +27,17 @@ import java.util.Map;
  * Created by songjunjun on 17/7/4.
  */
 
-public class MintegralCustomEventInterstitialVideoNative implements CustomEventInterstitial,InterstitialVideoListener {
+public class MintegralCustomEventInterstitialVideoNative implements CustomEventInterstitial, InterstitialVideoListener {
 
 
     private MTGInterstitialVideoHandler mInterstitialHandler;
 
-    private String appId = "";
-    private String appKey = "";
-    private String unitId = "";
+    private String mAppId = "";
+    private String mAppKey = "";
+    private String mUnitId = "";
     private String mRewardId = "";
-    private String packageName = "";
+    private String mPackageName = "";
+    private String mPlacementId = "";
     private static String TAG = MintegralCustomEventInterstitialVideoNative.class.getSimpleName();
 
     private CustomEventInterstitialListener mCustomEventInterstitialListener;
@@ -44,12 +46,13 @@ public class MintegralCustomEventInterstitialVideoNative implements CustomEventI
 
     @Override
     public void requestInterstitialAd(Context context, CustomEventInterstitialListener customEventInterstitialListener, String s, MediationAdRequest mediationAdRequest, Bundle bundle) {
+        Log.e(TAG, "hasInitMintegralSDK:" + "requestInterstitialAd。");
         mCustomEventInterstitialListener = customEventInterstitialListener;
-        parseServer(context,s);//解析服务端下发
+        parseServer(context, s);//解析服务端下发
         parseBunld(bundle);//解析传入
 
-        if(TextUtils.isEmpty(appId) || TextUtils.isEmpty(appKey)){
-            if(customEventInterstitialListener != null){
+        if (TextUtils.isEmpty(mAppId) || TextUtils.isEmpty(mAppKey)) {
+            if (customEventInterstitialListener != null) {
                 customEventInterstitialListener.onAdFailedToLoad(AdRequest.ERROR_CODE_INVALID_REQUEST);
             }
             return;
@@ -59,7 +62,7 @@ public class MintegralCustomEventInterstitialVideoNative implements CustomEventI
             AdapterTools.addChannel();
             MIntegralSDK sdk = MIntegralSDKFactory.getMIntegralSDK();
 
-            Map<String, String> map = sdk.getMTGConfigurationMap(appId, appKey);
+            Map<String, String> map = sdk.getMTGConfigurationMap(mAppId, mAppKey);
 
             sdk.init(map, context.getApplicationContext());
             hasInitMintegralSDK = true;
@@ -69,44 +72,73 @@ public class MintegralCustomEventInterstitialVideoNative implements CustomEventI
 
         HashMap<String, Object> hashMap = new HashMap<String, Object>();
         // 设置广告位ID
-        hashMap.put(MIntegralConstans.PROPERTIES_UNIT_ID, unitId);
-        if(context instanceof Activity){
-            mInterstitialHandler = new MTGInterstitialVideoHandler((Activity)context, unitId);
-            mInterstitialHandler.setRewardVideoListener(this);
-        }else{
+        hashMap.put(MIntegralConstans.PROPERTIES_UNIT_ID, mUnitId);
+        if (context instanceof Activity) {
+
+            mInterstitialHandler = MintegralHandlerManager.getInstance().getMTGInterstitialVideoHandler(mUnitId);
+            if (mInterstitialHandler == null) {
+                mInterstitialHandler = new MTGInterstitialVideoHandler((Activity) context, mPlacementId, mUnitId);
+                MintegralHandlerManager.getInstance().addMTGInterstitialVideoHandler(mUnitId, mInterstitialHandler);
+            }
+
+            if (mInterstitialHandler != null) {
+                mInterstitialHandler.setRewardVideoListener(this);
+            }
+        } else {
             return;
         }
         mInterstitialHandler.load();
     }
 
 
-    private void parseServer(Context context,String s){
-        JSONObject jo ;
-        if(!TextUtils.isEmpty(s)){
-            try{
+    private void parseServer(Context context, String s) {
+        JSONObject jo;
+        if (!TextUtils.isEmpty(s)) {
+            try {
                 jo = new JSONObject(s);
-                if(jo != null){
-                    appId = jo.getString("appId");
-                    appKey = jo.getString("appKey");
-                    unitId = jo.getString("unitId");
+                if (jo != null) {
+                    String appId = jo.getString("appId");
+                    String appKey = jo.getString("appKey");
+                    String unitId = jo.getString("unitId");
+                    String placementId = jo.optString("placementId");
+
+                    if (!TextUtils.isEmpty(appId)) {
+                        mAppId = appId;
+                    }
+
+                    if (!TextUtils.isEmpty(appKey)) {
+
+                        mAppKey = appKey;
+                    }
+
+                    if (!TextUtils.isEmpty(unitId)) {
+                        mUnitId = unitId;
+                    }
+
+
+                    if (!TextUtils.isEmpty(placementId)) {
+                        mPlacementId = placementId;
+                    }
                 }
-            }catch (Exception e){
-                Log.e("",e.getMessage(),e);
+            } catch (Exception e) {
+                Log.e("", e.getMessage(), e);
             }
+
+
         }
     }
 
 
-    private void parseBunld(Bundle bundle){
-        if(bundle != null && bundle.get("packageName") != null){
-            packageName = bundle.get("packageName").toString();
+    private void parseBunld(Bundle bundle) {
+        if (bundle != null && bundle.get("packageName") != null) {
+            mPackageName = bundle.get("packageName").toString();
         }
     }
 
     @Override
     public void showInterstitial() {
 
-            mInterstitialHandler.show();
+        mInterstitialHandler.show();
 
     }
 
@@ -126,9 +158,8 @@ public class MintegralCustomEventInterstitialVideoNative implements CustomEventI
     }
 
 
-
     @Override
-    public void onVideoLoadSuccess(String s) {
+    public void onVideoLoadSuccess(String placementID, String s) {
         mCustomEventInterstitialListener.onAdLoaded();
     }
 
@@ -153,22 +184,22 @@ public class MintegralCustomEventInterstitialVideoNative implements CustomEventI
     }
 
     @Override
-    public void onVideoAdClicked(String s) {
+    public void onVideoAdClicked(String placementID, String s) {
         mCustomEventInterstitialListener.onAdClicked();
     }
 
     @Override
-    public void onLoadSuccess(String s){
+    public void onLoadSuccess(String placementID, String s) {
 
     }
 
     @Override
-    public void onEndcardShow(String s) {
+    public void onEndcardShow(String placementID, String s) {
 
     }
 
     @Override
-    public void onVideoComplete(String s) {
+    public void onVideoComplete(String placementID, String s) {
 
     }
 

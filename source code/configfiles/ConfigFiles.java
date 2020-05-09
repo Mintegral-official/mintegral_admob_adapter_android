@@ -5,5 +5,5 @@ package com.mintegral.adapter.configfiles;
  */
 
 public class ConfigFiles {
-    public static String VERSION_CODE = "2.2.6";
+    public static String VERSION_CODE = "2.2.7";
 }

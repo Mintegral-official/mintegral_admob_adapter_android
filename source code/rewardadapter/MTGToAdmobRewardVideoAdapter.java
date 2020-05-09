@@ -13,6 +13,7 @@ import com.google.android.gms.ads.mediation.MediationAdRequest;
 import com.google.android.gms.ads.reward.mediation.MediationRewardedVideoAdAdapter;
 import com.google.android.gms.ads.reward.mediation.MediationRewardedVideoAdListener;
 import com.mintegral.adapter.common.AdapterTools;
+import com.mintegral.adapter.manager.MintegralHandlerManager;
 import com.mintegral.msdk.MIntegralConstans;
 import com.mintegral.msdk.MIntegralSDK;
 import com.mintegral.msdk.out.MIntegralSDKFactory;
@@ -38,11 +39,12 @@ public class MTGToAdmobRewardVideoAdapter implements MediationRewardedVideoAdAda
     private String mRewardUnitId = "";
     private String mRewardId = "";
     private String mUserId = "";
+    private String mPlacementId = "";
     static boolean hasInitMintegralSDK;
     private Context mContext;
     private MediationRewardedVideoAdListener mMediationRewardedVideoAdListener;
     private MediationRewardVideoEventForwarder mediationRewardVideoEventForwarder;
-    private HashMap<String,MTGRewardVideoHandler> unitArray = new HashMap<>();
+
 
     @Override
     public void onResume() {
@@ -81,6 +83,7 @@ public class MTGToAdmobRewardVideoAdapter implements MediationRewardedVideoAdAda
             String appKey = jsonObject.optString("appKey");
             String unitId = jsonObject.optString("unitId");
             String rewardId = jsonObject.optString("rewardId");
+            String placementId = jsonObject.optString("placementId");
 
 
             if (!TextUtils.isEmpty(appId)) {
@@ -98,6 +101,10 @@ public class MTGToAdmobRewardVideoAdapter implements MediationRewardedVideoAdAda
 
             if (!TextUtils.isEmpty(rewardId)) {
                 mRewardId = rewardId;
+            }
+
+            if (!TextUtils.isEmpty(placementId)) {
+                mPlacementId = placementId;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -158,16 +165,15 @@ public class MTGToAdmobRewardVideoAdapter implements MediationRewardedVideoAdAda
 
     @Override
     public void loadAd(MediationAdRequest mediationAdRequest, Bundle bundle, Bundle bundle1) {
-        if (mContext !=null) {
+        if (mContext != null) {
             String serviceString = bundle.getString(MediationRewardedVideoAdAdapter.CUSTOM_EVENT_SERVER_PARAMETER_FIELD);
             parseServiceString(serviceString);
-            if (unitArray.containsKey(mRewardUnitId)){
-                mMvRewardVideoHandler = unitArray.get(mRewardUnitId);
-            }else {
-                mMvRewardVideoHandler = new MTGRewardVideoHandler((Activity) mContext, mRewardUnitId);
-                unitArray.put(mRewardUnitId,mMvRewardVideoHandler);
+            mMvRewardVideoHandler = MintegralHandlerManager.getInstance().getMTGRewardVideoHandler(mRewardUnitId);
+            if (mMvRewardVideoHandler == null) {//unitArray.containsKey(mRewardUnitId)
+                mMvRewardVideoHandler = new MTGRewardVideoHandler((Activity) mContext, mPlacementId, mRewardUnitId);
+                MintegralHandlerManager.getInstance().addMTGRewardVideoHandler(mRewardUnitId, mMvRewardVideoHandler);
             }
-            if (mMvRewardVideoHandler!=null) {
+            if (mMvRewardVideoHandler != null) {
                 mMvRewardVideoHandler.setRewardVideoListener(mediationRewardVideoEventForwarder);
                 mMvRewardVideoHandler.load();
             }

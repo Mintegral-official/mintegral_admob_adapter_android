@@ -32,20 +32,22 @@ public class MintegralCustomEventInterstitial implements CustomEventInterstitial
     private String appKey = "";
     private String unitId = "";
     private String packageName = "";
+    private String mPlacementId = "";
 
     MintegralCustomInterstitialEventForwarder mMintegralCustomInterstitialEventForwarder;
+
     @Override
     public void requestInterstitialAd(Context context, CustomEventInterstitialListener customEventInterstitialListener, String s, MediationAdRequest mediationAdRequest, Bundle bundle) {
 
 
         mMintegralCustomInterstitialEventForwarder = new MintegralCustomInterstitialEventForwarder(customEventInterstitialListener);
-        parseServer(context,s);//解析服务端下发
+        parseServer(context, s);//解析服务端下发
         parseBunld(bundle);//解析传入
 
         MIntegralSDK sdk = MIntegralSDKFactory.getMIntegralSDK();
 
-        if(TextUtils.isEmpty(appId) || TextUtils.isEmpty(appKey)){
-            if(mMintegralCustomInterstitialEventForwarder != null){
+        if (TextUtils.isEmpty(appId) || TextUtils.isEmpty(appKey)) {
+            if (mMintegralCustomInterstitialEventForwarder != null) {
                 mMintegralCustomInterstitialEventForwarder.onInterstitialLoadFail("mobvista appid or appkey is null");
             }
             return;
@@ -54,8 +56,8 @@ public class MintegralCustomEventInterstitial implements CustomEventInterstitial
 
         Map<String, String> map = sdk.getMTGConfigurationMap(appId, appKey);
 
-        if(!TextUtils.isEmpty(packageName)){
-            map.put(MIntegralConstans.PACKAGE_NAME_MANIFEST,packageName);
+        if (!TextUtils.isEmpty(packageName)) {
+            map.put(MIntegralConstans.PACKAGE_NAME_MANIFEST, packageName);
         }
         AdapterTools.addChannel();
         sdk.init(map, context);
@@ -63,6 +65,7 @@ public class MintegralCustomEventInterstitial implements CustomEventInterstitial
         HashMap<String, Object> hashMap = new HashMap<String, Object>();
         // 设置广告位ID
         hashMap.put(MIntegralConstans.PROPERTIES_UNIT_ID, unitId);
+        hashMap.put(MIntegralConstans.PLACEMENT_ID, mPlacementId);
         mInterstitialHandler = new MTGInterstitialHandler(context, hashMap);
         mInterstitialHandler.setInterstitialListener(mMintegralCustomInterstitialEventForwarder);
 
@@ -70,18 +73,23 @@ public class MintegralCustomEventInterstitial implements CustomEventInterstitial
     }
 
 
-    private void parseServer(Context context,String s){
+    private void parseServer(Context context, String s) {
 
-        JSONObject jo ;
-        if(!TextUtils.isEmpty(s)){
-            try{
+        JSONObject jo;
+        if (!TextUtils.isEmpty(s)) {
+            try {
                 jo = new JSONObject(s);
-                if(jo != null){
+                if (jo != null) {
                     appId = jo.getString("appId");
                     appKey = jo.getString("appKey");
                     unitId = jo.getString("unitId");
+                    String placementId = jo.optString("placementId");
+
+                    if (!TextUtils.isEmpty(placementId)) {
+                        this.mPlacementId = placementId;
+                    }
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
 
             }
 
@@ -91,15 +99,15 @@ public class MintegralCustomEventInterstitial implements CustomEventInterstitial
     }
 
 
-    private void parseBunld(Bundle bundle){
-        if(bundle != null && bundle.get("packageName") != null){
+    private void parseBunld(Bundle bundle) {
+        if (bundle != null && bundle.get("packageName") != null) {
             packageName = bundle.get("packageName").toString();
         }
     }
 
     @Override
     public void showInterstitial() {
-        if(mInterstitialHandler != null){
+        if (mInterstitialHandler != null) {
             mInterstitialHandler.show();
         }
     }

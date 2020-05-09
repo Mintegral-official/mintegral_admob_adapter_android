@@ -28,6 +28,7 @@ public class MintegralCustomEventNative implements CustomEventNative {
     private String appId = "";
     private String appKey = "";
     private String unitId = "";
+    private String mPlacementId = "";
 
 
     private MtgNativeHandler mNativeHandle;
@@ -80,6 +81,13 @@ public class MintegralCustomEventNative implements CustomEventNative {
                     appId = jo.getString("appId");
                     appKey = jo.getString("appKey");
                     unitId = jo.getString("unitId");
+
+
+                    String placementId = jo.optString("placementId");
+
+                    if (!TextUtils.isEmpty(placementId)) {
+                        mPlacementId = placementId;
+                    }
 //                    AdapterTools.pareseAuthority(context, jo);
                 }
             } catch (Exception e) {
@@ -118,7 +126,7 @@ public class MintegralCustomEventNative implements CustomEventNative {
 
     private void loadMintegralAds(Context context, CustomEventNativeListener customEventNativeListener) {
 
-        Map<String, Object> properties = MtgNativeHandler.getNativeProperties(unitId);
+        Map<String, Object> properties = MtgNativeHandler.getNativeProperties(mPlacementId, unitId);
         properties.put(MIntegralConstans.PROPERTIES_AD_NUM, 1);
         mNativeHandle = new MtgNativeHandler(properties, context);
         mNativeHandle.addTemplate(new NativeListener.Template(MIntegralConstans.TEMPLATE_BIG_IMG, 1));

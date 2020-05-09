@@ -18,6 +18,7 @@ import com.google.android.gms.ads.reward.mediation.MediationRewardedVideoAdAdapt
 import com.google.android.gms.ads.rewarded.RewardItem;
 import com.mintegral.adapter.common.AdapterTools;
 import com.mintegral.adapter.configfiles.ConfigFiles;
+import com.mintegral.adapter.manager.MintegralHandlerManager;
 import com.mintegral.msdk.MIntegralConstans;
 import com.mintegral.msdk.MIntegralSDK;
 import com.mintegral.msdk.out.MIntegralSDKFactory;
@@ -38,16 +39,16 @@ public class AdmobNewRewardVideoAdapter extends Adapter implements MediationRewa
     private String mRewardUnitId = "";
     private String mRewardId = "1";
     private String mUserId = "";
-    private String TAG = "testnewreward";
+    private String mPlacementID = "";
+    private String TAG = "AdmobNewRewardVideoAdapter";
     static boolean hasInitMintegralSDK = false;
 
     MediationAdLoadCallback admobLoadListener;
     private MediationRewardedAdCallback mMediationRewardedAdCallback;
-    private HashMap<String,MTGRewardVideoHandler> unitArray = new HashMap<>();
+    private HashMap<String, MTGRewardVideoHandler> unitArray = new HashMap<>();
 
     @Override
     public void initialize(Context context, InitializationCompleteCallback initializationCompleteCallback, List<MediationConfiguration> list) {
-        Log.e(TAG, "initialize: ");
         for (MediationConfiguration configuration : list) {
             Bundle serverParameters = configuration.getServerParameters();
             String serviceString = serverParameters.getString(MediationRewardedVideoAdAdapter.CUSTOM_EVENT_SERVER_PARAMETER_FIELD);
@@ -123,13 +124,12 @@ public class AdmobNewRewardVideoAdapter extends Adapter implements MediationRewa
             hasInitMintegralSDK = true;
             Log.e(TAG, "hasInitMintegralSDK:" + hasInitMintegralSDK);
         }
-        if (unitArray.containsKey(mRewardUnitId)){
-            mMvRewardVideoHandler = unitArray.get(mRewardUnitId);
-        }else {
-            mMvRewardVideoHandler = new MTGRewardVideoHandler(context, mRewardUnitId);
-            unitArray.put(mRewardUnitId,mMvRewardVideoHandler);
+        mMvRewardVideoHandler = MintegralHandlerManager.getInstance().getMTGRewardVideoHandler(mRewardUnitId);
+        if (mMvRewardVideoHandler == null) {
+            mMvRewardVideoHandler = new MTGRewardVideoHandler(context, mPlacementID, mRewardUnitId);
+            MintegralHandlerManager.getInstance().addMTGRewardVideoHandler(mRewardUnitId, mMvRewardVideoHandler);
         }
-        if (mMvRewardVideoHandler!=null) {
+        if (mMvRewardVideoHandler != null) {
             mMvRewardVideoHandler.setRewardVideoListener(this);
             mMvRewardVideoHandler.load();
         }
@@ -142,13 +142,14 @@ public class AdmobNewRewardVideoAdapter extends Adapter implements MediationRewa
         if (TextUtils.isEmpty(serviceString)) {
             return;
         }
-        Log.e(TAG,serviceString);
+        Log.e(TAG, serviceString);
         try {
             JSONObject jsonObject = new JSONObject(serviceString);
             String appId = jsonObject.optString("appId");
             String appKey = jsonObject.optString("appKey");
             String unitId = jsonObject.optString("unitId");
             String rewardId = jsonObject.optString("rewardId");
+            String placementID = jsonObject.optString("placementID");
 
 
             if (!TextUtils.isEmpty(appId)) {
@@ -167,6 +168,10 @@ public class AdmobNewRewardVideoAdapter extends Adapter implements MediationRewa
             if (!TextUtils.isEmpty(rewardId)) {
                 mRewardId = rewardId;
             }
+
+            if (!TextUtils.isEmpty(placementID)) {
+                mPlacementID = placementID;
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -174,14 +179,14 @@ public class AdmobNewRewardVideoAdapter extends Adapter implements MediationRewa
     }
 
     @Override
-    public void onVideoLoadSuccess(String s) {
+    public void onVideoLoadSuccess(String placementID, String s) {
         Log.e(TAG, "onVideoLoadSuccess: " + s);
         if (admobLoadListener != null)
             mMediationRewardedAdCallback = (MediationRewardedAdCallback) admobLoadListener.onSuccess(this);
     }
 
     @Override
-    public void onLoadSuccess(String s) {
+    public void onLoadSuccess(String placementID, String s) {
         Log.e(TAG, "onLoadSuccess: " + s);
     }
 
@@ -234,17 +239,17 @@ public class AdmobNewRewardVideoAdapter extends Adapter implements MediationRewa
     }
 
     @Override
-    public void onVideoAdClicked(String s) {
+    public void onVideoAdClicked(String placementID, String s) {
         if (mMediationRewardedAdCallback != null) mMediationRewardedAdCallback.reportAdClicked();
     }
 
     @Override
-    public void onVideoComplete(String s) {
+    public void onVideoComplete(String placementID, String s) {
         if (mMediationRewardedAdCallback != null) mMediationRewardedAdCallback.onVideoComplete();
     }
 
     @Override
-    public void onEndcardShow(String s) {
+    public void onEndcardShow(String placementID, String s) {
 
     }
 }

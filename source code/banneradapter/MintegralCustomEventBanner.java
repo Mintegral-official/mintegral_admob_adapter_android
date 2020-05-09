@@ -30,17 +30,17 @@ public class MintegralCustomEventBanner implements CustomEventBanner {
     private String appId = "";
     private String appKey = "";
     private String unitId = "";
-
+    private String mPlacementId = "";
 
     private String packageName = "";
 
     private MTGBannerView mtgBannerView;
     private static boolean hasInitSDK = false;
-    private static final String TAG = "Banner";
+    private static final String TAG = "MtgCustomEventBanner";
 
     @Override
     public void requestBannerAd(Context context, CustomEventBannerListener customEventBannerListener, String s, AdSize adSize, MediationAdRequest mediationAdRequest, Bundle bundle) {
-        Log.e(TAG, "requestBannerAd: " );
+        Log.e(TAG, "requestBannerAd: ");
 
         parseServer(context, s);
 
@@ -55,14 +55,14 @@ public class MintegralCustomEventBanner implements CustomEventBanner {
             initSDK(context);
         }
 
-        loadAds(context, customEventBannerListener,adSize);
+        loadAds(context, customEventBannerListener, adSize);
     }
 
     @Override
     public void onDestroy() {
-        Log.e(TAG, "onDes " );
-        if(mtgBannerView!= null){
-            Log.e(TAG, "onDestroy: " );
+        Log.e(TAG, "onDes ");
+        if (mtgBannerView != null) {
+            Log.e(TAG, "onDestroy: ");
             mtgBannerView.release();
         }
     }
@@ -87,6 +87,11 @@ public class MintegralCustomEventBanner implements CustomEventBanner {
                     appId = jo.getString("appId");
                     appKey = jo.getString("appKey");
                     unitId = jo.getString("unitId");
+                    String placementId = jo.optString("placementId");
+
+                    if (!TextUtils.isEmpty(placementId)) {
+                        mPlacementId = placementId;
+                    }
                 }
             } catch (Exception e) {
 
@@ -126,20 +131,20 @@ public class MintegralCustomEventBanner implements CustomEventBanner {
 
         int width = adSize.getWidth();
         int height = adSize.getHeight();
-        Log.d(TAG, "loadAds: adsize "+width+" "+height);
+        Log.d(TAG, "loadAds: adsize " + width + " " + height);
 
         final int w = adSize.getWidthInPixels(context);
         final int h = adSize.getHeightInPixels(context);
 
         mtgBannerView = new MTGBannerView(context);
         mtgBannerView.setVisibility(View.GONE);
-        mtgBannerView.init(new BannerSize(BannerSize.DEV_SET_TYPE,width,height),unitId);
+        mtgBannerView.init(new BannerSize(BannerSize.DEV_SET_TYPE, width, height), mPlacementId, unitId);
 
 
         //mtgBannerView.setAllowShowCloseBtn(false);
 
         //mtgBannerView.setRefreshTime(10);
-        mtgBannerView.setBannerAdListener(new MintegralCustomBannerEventForwarder(customEventBannerListener,mtgBannerView));
+        mtgBannerView.setBannerAdListener(new MintegralCustomBannerEventForwarder(customEventBannerListener, mtgBannerView));
 
         mtgBannerView.load();
 

@@ -2,6 +2,9 @@
 
 ## ChangeLog
 
+#### 2.2.7
+- upgrade SDK to 13.1.1
+
 #### 2.2.6
 - upgrade SDK to 13.0.4
 
